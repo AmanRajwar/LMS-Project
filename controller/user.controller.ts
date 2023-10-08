@@ -163,7 +163,7 @@ export const logoutUser = CatchAsyncError(async (req: Request, res: Response, ne
         res.cookie('access_token', "", { maxAge: 1 })
         res.cookie('refresh_token', "", { maxAge: 1 })
         const userId = req.user?._id || '';
-console.log( req.user);
+        console.log(req.user);
         redis.del(userId)
 
         res.status(200).json({
@@ -174,3 +174,15 @@ console.log( req.user);
         return next(new ErrorHandler(error.message, 400))
     }
 })
+
+//validate user role
+export const authorizeRoles = (...roles: string[]) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        if (!roles.includes(req.user?.role || '')) {
+            return next(new ErrorHandler(`Role:${req.user?.role} is not allowed to access this resource`, 403))
+        }
+        next();
+    }
+}
+
+

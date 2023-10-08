@@ -10,6 +10,7 @@ import path from "path";
 import sendMail from "../utils/sendMail";
 import { Error } from "mongoose";
 import { sendToken } from "../utils/jwt";
+import { redis } from "../utils/redis";
 
 interface IRegistrationBody {
     name: string;
@@ -90,7 +91,7 @@ interface IActivationRequest {
 
 export const activateUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {activation_code,activation_token } = req.body as IActivationRequest;
+        const { activation_code, activation_token } = req.body as IActivationRequest;
         console.log(req.body);
 
         const newUser: { user: IUser; activationCode: string } = jwt.verify(
@@ -151,6 +152,24 @@ export const loginUser = CatchAsyncError(async (req: Request, res: Response, nex
 
         sendToken(user, 200, res);
 
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400))
+    }
+})
+
+
+export const logoutUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.cookie('access_token', "", { maxAge: 1 })
+        res.cookie('refresh_token', "", { maxAge: 1 })
+        const userId = req.user?._id || '';
+console.log( req.user);
+        redis.del(userId)
+
+        res.status(200).json({
+            success: true,
+            message: "user logged successfully"
+        })
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400))
     }

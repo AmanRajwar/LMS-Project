@@ -254,7 +254,6 @@ export const socialAuth = CatchAsyncError(async (req: Request, res: Response, ne
                 name,
                 avatar
             })
-            console.log("aman",newUser)
             sendToken(newUser, 200, res);
         }else{
             sendToken(user, 200, res);
